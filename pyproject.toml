@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "endoreg-db-api"
+version = "0.1.0"
+description = "API for endoreg-db-interactions"
+authors = ["Thomas <tlux14@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+endoreg-db = "^0.4.6"
+gunicorn = "^23.0.0"
+
+[tool.poetry.group.nix-provisioning.dependencies]
+psycopg = "^3.2.3"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.3"
+
+[tool.poetry.scripts]
+# run-endoreg-db-api = "sh -c 'gunicorn endoreg_db_api.endoreg_db_api.wsgi:application'"
+run-server = "endoreg_db_api.endoreg_db_api.run_gunicorn:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
