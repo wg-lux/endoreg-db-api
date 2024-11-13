@@ -339,7 +339,42 @@ wheels = [
 ]
 
 [[package]]
-name = "django-webapp"
+name = "djangorestframework"
+version = "3.15.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/2c/ce/31482eb688bdb4e271027076199e1aa8d02507e530b6d272ab8b4481557c/djangorestframework-3.15.2.tar.gz", hash = "sha256:36fe88cd2d6c6bec23dca9804bab2ba5517a8bb9d8f47ebc68981b56840107ad", size = 1067420 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7c/b6/fa99d8f05eff3a9310286ae84c4059b08c301ae4ab33ae32e46e8ef76491/djangorestframework-3.15.2-py3-none-any.whl", hash = "sha256:2b8871b062ba1aefc2de01f773875441a961fefbf79f5eed1e32b2f096944b20", size = 1071235 },
+]
+
+[[package]]
+name = "endoreg-db"
+version = "0.4.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "agl-report-reader" },
+    { name = "django" },
+    { name = "django-bootstrap5" },
+    { name = "djangorestframework" },
+    { name = "ffmpeg-python" },
+    { name = "opencv-python" },
+    { name = "pandas" },
+    { name = "pillow" },
+    { name = "pytesseract" },
+    { name = "pyyaml" },
+    { name = "scipy" },
+    { name = "tqdm" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/26/1d/7f28c6c6507b55171f96ee5cff0e30c214350656e3bb4bae9da3128e20e3/endoreg_db-0.4.6.tar.gz", hash = "sha256:8be4792e325a75dff482228fdbf7e2d9523750e4647eb5f4222114bcf1afcb43", size = 111596 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f7/4e/ffca687e20a3ee5b572361208f77f254e31693d2e25cd22acbffbd421bb9/endoreg_db-0.4.6-py3-none-any.whl", hash = "sha256:1563baa1330eb5d7518ea59297eaba8d84ef0fa33f330a0e4a99edc82fba7de2", size = 216989 },
+]
+
+[[package]]
+name = "endoreg-db-api"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
@@ -399,41 +434,6 @@ test = [
 typing = [
     { name = "django-stubs", extras = ["compatible-mypy"], specifier = ">=5.1.1" },
     { name = "mypy", specifier = ">=1.13.0" },
-]
-
-[[package]]
-name = "djangorestframework"
-version = "3.15.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/2c/ce/31482eb688bdb4e271027076199e1aa8d02507e530b6d272ab8b4481557c/djangorestframework-3.15.2.tar.gz", hash = "sha256:36fe88cd2d6c6bec23dca9804bab2ba5517a8bb9d8f47ebc68981b56840107ad", size = 1067420 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/7c/b6/fa99d8f05eff3a9310286ae84c4059b08c301ae4ab33ae32e46e8ef76491/djangorestframework-3.15.2-py3-none-any.whl", hash = "sha256:2b8871b062ba1aefc2de01f773875441a961fefbf79f5eed1e32b2f096944b20", size = 1071235 },
-]
-
-[[package]]
-name = "endoreg-db"
-version = "0.4.6"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "agl-report-reader" },
-    { name = "django" },
-    { name = "django-bootstrap5" },
-    { name = "djangorestframework" },
-    { name = "ffmpeg-python" },
-    { name = "opencv-python" },
-    { name = "pandas" },
-    { name = "pillow" },
-    { name = "pytesseract" },
-    { name = "pyyaml" },
-    { name = "scipy" },
-    { name = "tqdm" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/26/1d/7f28c6c6507b55171f96ee5cff0e30c214350656e3bb4bae9da3128e20e3/endoreg_db-0.4.6.tar.gz", hash = "sha256:8be4792e325a75dff482228fdbf7e2d9523750e4647eb5f4222114bcf1afcb43", size = 111596 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f7/4e/ffca687e20a3ee5b572361208f77f254e31693d2e25cd22acbffbd421bb9/endoreg_db-0.4.6-py3-none-any.whl", hash = "sha256:1563baa1330eb5d7518ea59297eaba8d84ef0fa33f330a0e4a99edc82fba7de2", size = 216989 },
 ]
 
 [[package]]

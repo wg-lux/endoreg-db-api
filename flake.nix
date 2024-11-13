@@ -31,9 +31,9 @@
       inherit (nixpkgs) lib;
       forAllSystems = lib.genAttrs lib.systems.flakeExposed;
 
-      asgiApp = "django_webapp.asgi:application";
+      asgiApp = "endoreg_db_api.asgi:application";
       settingsModules = {
-        prod = "django_webapp.settings";
+        prod = "endoreg_db_api.settings";
       };
 
       # Load a uv workspace from a workspace root.
@@ -65,8 +65,7 @@
           # An overlay of build fixups & test additions
           pyprojectOverrides = final: prev: {
 
-            # django-webapp is the name of our example package
-            django-webapp = prev.django-webapp.overrideAttrs (old: {
+            endoreg-db-api = prev.endoreg-db-api.overrideAttrs (old: {
 
               # Add tests to passthru.tests
               #
@@ -79,13 +78,13 @@
                     # Run mypy checks
                     mypy =
                       let
-                        venv = final.mkVirtualEnv "django-webapp-typing-env" {
-                          django-webapp = [ "typing" ];
+                        venv = final.mkVirtualEnv "endoreg-db-api-typing-env" {
+                          endoreg-db-api = [ "typing" ];
                         };
                       in
                       stdenv.mkDerivation {
-                        name = "${final.django-webapp.name}-mypy";
-                        inherit (final.django-webapp) src;
+                        name = "${final.endoreg-db-api.name}-mypy";
+                        inherit (final.endoreg-db-api) src;
                         nativeBuildInputs = [
                           venv
                         ];
@@ -100,13 +99,13 @@
                     # Run pytest with coverage reports installed into build output
                     pytest =
                       let
-                        venv = final.mkVirtualEnv "django-webapp-pytest-env" {
-                          django-webapp = [ "test" ];
+                        venv = final.mkVirtualEnv "endoreg-db-api-pytest-env" {
+                          endoreg-db-api = [ "test" ];
                         };
                       in
                       stdenv.mkDerivation {
-                        name = "${final.django-webapp.name}-pytest";
-                        inherit (final.django-webapp) src;
+                        name = "${final.endoreg-db-api.name}-pytest";
+                        inherit (final.endoreg-db-api) src;
                         nativeBuildInputs = [
                           venv
                         ];
@@ -131,21 +130,21 @@
                     # NixOS module test
                     nixos =
                       let
-                        venv = final.mkVirtualEnv "django-webapp-nixos-test-env" {
-                          django-webapp = [ ];
+                        venv = final.mkVirtualEnv "endoreg-db-api-nixos-test-env" {
+                          endoreg-db-api = [ ];
                         };
                       in
                       pkgs.nixosTest {
-                        name = "django-webapp-nixos-test";
+                        name = "endoreg-db-api-nixos-test";
 
                         nodes.machine =
                           { ... }:
                           {
                             imports = [
-                              self.nixosModules.django-webapp
+                              self.nixosModules.endoreg-db-api
                             ];
 
-                            services.django-webapp = {
+                            services.endoreg-db-api = {
                               enable = true;
                               inherit venv;
                             };
@@ -154,7 +153,7 @@
                           };
 
                         testScript = ''
-                          machine.wait_for_unit("django-webapp.service")
+                          machine.wait_for_unit("endoreg-db-api.service")
 
                           with subtest("Web interface getting ready"):
                               machine.wait_until_succeeds("curl -fs localhost:8000")
@@ -180,12 +179,12 @@
 
           pythonSet = pythonSets.${system};
 
-          venv = pythonSet.mkVirtualEnv "django-webapp-env" workspace.deps.default;
+          venv = pythonSet.mkVirtualEnv "endoreg-db-api-env" workspace.deps.default;
 
         in
         stdenv.mkDerivation {
-          name = "django-webapp-static";
-          inherit (pythonSet.django-webapp) src;
+          name = "endoreg-db-api-static";
+          inherit (pythonSet.endoreg-db-api) src;
 
           dontConfigure = true;
           dontBuild = true;
@@ -208,11 +207,11 @@
           pythonSet = pythonSets.${system};
         in
         # Inherit tests from passthru.tests into flake checks
-        pythonSet.django-webapp.passthru.tests
+        pythonSet.endoreg-db-api.passthru.tests
       );
 
       nixosModules = {
-        django-webapp =
+        endoreg-db-api =
           {
             config,
             lib,
@@ -221,7 +220,7 @@
           }:
 
           let
-            cfg = config.services.django-webapp;
+            cfg = config.services.endoreg-db-api;
             inherit (pkgs) system;
 
             pythonSet = pythonSets.${system};
@@ -230,12 +229,12 @@
             inherit (lib.modules) mkIf;
           in
           {
-            options.services.django-webapp = {
+            options.services.endoreg-db-api = {
               enable = mkOption {
                 type = lib.types.bool;
                 default = false;
                 description = ''
-                  Enable django-webapp
+                  Enable endoreg-db-api
                 '';
               };
 
@@ -249,9 +248,9 @@
 
               venv = mkOption {
                 type = lib.types.package;
-                default = pythonSet.mkVirtualEnv "django-webapp-env" workspace.deps.default;
+                default = pythonSet.mkVirtualEnv "endoreg-db-api-env" workspace.deps.default;
                 description = ''
-                  Django-webapp virtual environment package
+                  endoreg-db-api virtual environment package
                 '';
               };
 
@@ -259,26 +258,26 @@
                 type = lib.types.package;
                 default = staticRoots.${system};
                 description = ''
-                  Django-webapp static root
+                  endoreg-db-api static root
                 '';
               };
             };
 
             config = mkIf cfg.enable {
-              systemd.services.django-webapp = {
+              systemd.services.endoreg-db-api = {
                 description = "Django Webapp server";
 
                 environment.DJANGO_STATIC_ROOT = cfg.static-root;
 
                 serviceConfig = {
                   ExecStart = ''
-                    ${cfg.venv}/bin/daphne django_webapp.asgi:application
+                    ${cfg.venv}/bin/daphne endoreg_db_api.asgi:application
                   '';
                   Restart = "on-failure";
 
                   DynamicUser = true;
-                  StateDirectory = "django-webapp";
-                  RuntimeDirectory = "django-webapp";
+                  StateDirectory = "endoreg-db-api";
+                  RuntimeDirectory = "endoreg-db-api";
 
                   BindReadOnlyPaths = [
                     "${
@@ -310,10 +309,10 @@
           # Expose Docker container in packages
           docker =
             let
-              venv = pythonSet.mkVirtualEnv "django-webapp-env" workspace.deps.default;
+              venv = pythonSet.mkVirtualEnv "endoreg-db-api-env" workspace.deps.default;
             in
             pkgs.dockerTools.buildLayeredImage {
-              name = "django-webapp";
+              name = "endoreg-db-api";
               contents = [ pkgs.cacert ];
               config = {
                 Cmd = [
@@ -335,8 +334,8 @@
         let
           pkgs = nixpkgs.legacyPackages.${system};
           editablePythonSet = pythonSets.${system}.overrideScope editableOverlay;
-          venv = editablePythonSet.mkVirtualEnv "django-webapp-dev-env" {
-            django-webapp = [ "dev" ];
+          venv = editablePythonSet.mkVirtualEnv "endoreg-db-api-dev-env" {
+            endoreg-db-api = [ "dev" ];
           };
         in
         {
