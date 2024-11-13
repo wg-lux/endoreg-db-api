@@ -1,239 +1,371 @@
 {
-  description = "Flake for the endoreg-db-api django server";
-
-  nixConfig = {
-    substituters = [
-        "https://cache.nixos.org"
-      ];
-    trusted-public-keys = [
-        "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-      ];
-    extra-substituters = "https://cache.nixos.org https://nix-community.cachix.org";
-    extra-trusted-public-keys = "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=";
-  };
+  description = "Hello world flake using uv2nix";
 
   inputs = {
-    poetry2nix.url = "github:nix-community/poetry2nix";
-    poetry2nix.inputs.nixpkgs.follows = "nixpkgs";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
+    pyproject-nix = {
+      url = "github:nix-community/pyproject.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
-    cachix = {
-      url = "github:cachix/cachix";
+    uv2nix = {
+      url = "github:adisbladis/uv2nix";
+      inputs.pyproject-nix.follows = "pyproject-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { nixpkgs, poetry2nix, ... } @ inputs: 
-  let 
-    system = "x86_64-linux";
-    self = inputs.self;
-    version = "0.1.${pkgs.lib.substring 0 8 inputs.self.lastModifiedDate}.${inputs.self.shortRev or "dirty"}";
-    python-version = "311";
-    cachix = inputs.cachix;
+  # Note that uv2nix is _not_ using Nixpkgs buildPythonPackage.
+  # It's using https://nix-community.github.io/pyproject.nix/build.html
 
-    pkgs = import nixpkgs {
-      inherit system;
-      config = {
-        allowUnfree = true;
+  outputs =
+    {
+      self,
+      nixpkgs,
+      uv2nix,
+      pyproject-nix,
+      ...
+    }:
+    let
+      inherit (nixpkgs) lib;
+      forAllSystems = lib.genAttrs lib.systems.flakeExposed;
+
+      asgiApp = "django_webapp.asgi:application";
+      settingsModules = {
+        prod = "django_webapp.settings";
       };
-    };
 
-    lib = pkgs.lib;
+      # Load a uv workspace from a workspace root.
+      # Uv2nix treats all uv projects as workspace projects.
+      # https://adisbladis.github.io/uv2nix/lib/workspace.html
+      workspace = uv2nix.lib.workspace.loadWorkspace { workspaceRoot = ./.; };
 
-    pypkgs-build-requirements = {
-      django-flat-theme = [ "setuptools" ];
-      django-flat-responsive = [ "setuptools" ];
-    };
+      # Create package overlay from workspace.
+      overlay = workspace.mkPyprojectOverlay {
+        sourcePreference = "wheel"; # or sourcePreference = "sdist";
+      };
 
-    poetry2nix = inputs.poetry2nix.lib.mkPoetry2Nix { inherit pkgs;};
+      editableOverlay = workspace.mkEditablePyprojectOverlay {
+        root = "$REPO_ROOT";
+      };
 
-    p2n-overrides = poetry2nix.defaultPoetryOverrides.extend (final: prev:
-      builtins.mapAttrs (package: build-requirements:
-        (builtins.getAttr package prev).overridePythonAttrs (old: {
-          buildInputs = (old.buildInputs or [ ]) ++ (
-            builtins.map (pkg:
-              if builtins.isString pkg then builtins.getAttr pkg prev else pkg
-            ) build-requirements
-          );
-        })
-      ) pypkgs-build-requirements
-    );
-
-    poetryApp = poetry2nix.mkPoetryApplication {
-      projectDir = ./.;
-      src = lib.cleanSource ./.;
-      python = pkgs."python${python-version}";
-      overrides = p2n-overrides;
-      preferWheels = true; # some packages, e.g. transformers break if false
-      propagatedBuildInputs =  with pkgs."python${python-version}Packages"; [
-        
-      ];
-      nativeBuildInputs = with pkgs."python${python-version}Packages"; [
-        pip
-        setuptools
-      ];
-      buildInputs = with pkgs; [
-        poetry
-        python311Packages.venvShellHook
-      ];
-
-      venvDir = ".venv";
-    };
-
-    poetryEnv = poetry2nix.mkPoetryEnv {
-      projectDir = ./.;
-      python = pkgs."python${python-version}";
-      extraPackages = (ps: [
-        ps.pip
-      ]);
-      overrides = p2n-overrides;
-      editablePackageSources = {};
-      preferWheels = true;
-    };
-    
-  in
-  {
-
-    packages.x86_64-linux.poetryApp = poetryApp;
-    packages.x86_64-linux.default = poetryApp;
-    
-    apps.x86_64-linux.endoreg-db-api = {
-      type = "app";
-      program = "${poetryApp}/bin/run-endoreg-db-api";
-      # program = "${poetryApp}/bin/run-server";
-    };
-
-    apps.x86_64-linux.default = self.apps.x86_64-linux.endoreg-db-api;
-  
-    devShells.x86_64-linux.default = pkgs.mkShell {
-      buildInputs = [
-        pkgs.poetry
-        poetryEnv
-        pkgs.python311Packages.numpy
-        pkgs.python311Packages.venvShellHook
-      ];
-
-      propagatedBuildInputs = [
-        pkgs.python311Packages.psycopg
-      ];
-
-      venvDir = ".venv";
-
-      # Define Environment Variables
-      DJANGO_SETTINGS_MODULE = "endoreg_db_api.endoreg_db_api.settings_base";
-      DJANGO_DATA_DIR = "/var/lib/endoreg-db-api";
-    };
-
-    nixosModules = {
-      endoreg-db-api = { config, pkgs, lib, ...}: 
+      # Python sets grouped per system
+      pythonSets = forAllSystems (
+        system:
         let
-          mkOption = lib.mkOption;
+          pkgs = nixpkgs.legacyPackages.${system};
+          inherit (pkgs) stdenv;
+
+          # Base Python package set from pyproject.nix
+          baseSet = pkgs.callPackage pyproject-nix.build.packages {
+            python = pkgs.python312;
+          };
+
+          # An overlay of build fixups & test additions
+          pyprojectOverrides = final: prev: {
+
+            # django-webapp is the name of our example package
+            django-webapp = prev.django-webapp.overrideAttrs (old: {
+
+              # Add tests to passthru.tests
+              #
+              # These attribute are used in Flake checks.
+              passthru = old.passthru // {
+                tests =
+                  (old.tests or { })
+                  // {
+
+                    # Run mypy checks
+                    mypy =
+                      let
+                        venv = final.mkVirtualEnv "django-webapp-typing-env" {
+                          django-webapp = [ "typing" ];
+                        };
+                      in
+                      stdenv.mkDerivation {
+                        name = "${final.django-webapp.name}-mypy";
+                        inherit (final.django-webapp) src;
+                        nativeBuildInputs = [
+                          venv
+                        ];
+                        dontConfigure = true;
+                        dontInstall = true;
+                        buildPhase = ''
+                          mkdir $out
+                          mypy --strict . --junit-xml $out/junit.xml
+                        '';
+                      };
+
+                    # Run pytest with coverage reports installed into build output
+                    pytest =
+                      let
+                        venv = final.mkVirtualEnv "django-webapp-pytest-env" {
+                          django-webapp = [ "test" ];
+                        };
+                      in
+                      stdenv.mkDerivation {
+                        name = "${final.django-webapp.name}-pytest";
+                        inherit (final.django-webapp) src;
+                        nativeBuildInputs = [
+                          venv
+                        ];
+
+                        dontConfigure = true;
+
+                        buildPhase = ''
+                          runHook preBuild
+                          pytest --cov tests --cov-report html tests
+                          runHook postBuild
+                        '';
+
+                        installPhase = ''
+                          runHook preInstall
+                          mv htmlcov $out
+                          runHook postInstall
+                        '';
+                      };
+                  }
+                  // lib.optionalAttrs stdenv.isLinux {
+
+                    # NixOS module test
+                    nixos =
+                      let
+                        venv = final.mkVirtualEnv "django-webapp-nixos-test-env" {
+                          django-webapp = [ ];
+                        };
+                      in
+                      pkgs.nixosTest {
+                        name = "django-webapp-nixos-test";
+
+                        nodes.machine =
+                          { ... }:
+                          {
+                            imports = [
+                              self.nixosModules.django-webapp
+                            ];
+
+                            services.django-webapp = {
+                              enable = true;
+                              inherit venv;
+                            };
+
+                            system.stateVersion = "24.11";
+                          };
+
+                        testScript = ''
+                          machine.wait_for_unit("django-webapp.service")
+
+                          with subtest("Web interface getting ready"):
+                              machine.wait_until_succeeds("curl -fs localhost:8000")
+                        '';
+                      };
+
+                  };
+              };
+            });
+
+          };
+
         in
-      {
-        
-        options.services.endoreg-db-api = {
+        baseSet.overrideScope (lib.composeExtensions overlay pyprojectOverrides)
+      );
 
-          enable = mkOption {
-            default = true;
-            description = "Enable the endoreg-db-api service";
-            type = lib.types.bool;
-          };
+      # Django static roots grouped per system
+      staticRoots = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          inherit (pkgs) stdenv;
 
-          user = mkOption {
-            default = "root";
-            description = "The user to run the endoreg-db-api service as";
-            type = lib.types.str;
-          };
+          pythonSet = pythonSets.${system};
 
-          group = mkOption {
-            default = "root";
-            description = "The group to run the endoreg-db-api service as";
-            type = lib.types.str;
-          };
+          venv = pythonSet.mkVirtualEnv "django-webapp-env" workspace.deps.default;
 
-          ip = mkOption {
-            default = "127.0.0.1";
-            description = "The ip to run the endoreg-db-api service on";
-            type = lib.types.str;
-          };
+        in
+        stdenv.mkDerivation {
+          name = "django-webapp-static";
+          inherit (pythonSet.django-webapp) src;
 
-          port = mkOption {
-            default = 8000;
-            description = "The port to run the endoreg-db-api service on";
-            type = lib.types.int;
-          };
+          dontConfigure = true;
+          dontBuild = true;
 
-          target-db-host = mkOption {
-            default = "localhost";
-            description = "The target database host to connect to";
-            type = lib.types.str;
-          };
-
-          target-db-port = mkOption {
-            default = 5432;
-            description = "The target database port to connect to";
-            type = lib.types.int;
-          };
-
-          target-db = mkOption {
-            default = "endoreg-db";
-            description = "The target database to connect to";
-            type = lib.types.str;
-          };
-
-          target-db-user = mkOption {
-            default = "endoreg-db";
-            description = "The target database user to connect as";
-            type = lib.types.str;
-          };
-
-          target-db-passfile = mkOption {
-            default = "/etc/aglnet-base-db_pass";
-            description = "The target database password file";
-            type = lib.types.str;
-          };
-
-        };
-
-        # if endoreg-db-api service is enabled, add the poetryApp to the systemPackages
-        config = lib.mkIf config.endoreg-db-api.enable {
-          environment.systemPackages = [ 
-            poetryApp
-            pkgs.openssl
-            pkgs.lsof
+          nativeBuildInputs = [
+            venv
           ];
-        
-        # if endoreg-db-api service is enabled, we need to start the wsgi application using gunicorn
-        systemd.services.endoreg-db-api = {
-          description = "endoreg-db-api service";
-          after = [ "network.target" ];
-          wantedBy = [ "multi-user.target" ];
-          serviceConfig = {
-            Type = "simple";
-            User = config.endoreg-db-api.user;
-            Group = config.endoreg-db-api.group;
-            ExecStart = "${poetryApp}/bin/run-endoreg-db-api";
-            Environment = {
-              DJANGO_SETTINGS_MODULE = "endoreg_db_api.endoreg_db_api.settings_base";
-              DJANGO_DATA_DIR = "/var/lib/endoreg-db-api";
-              DJANGO_DB_HOST = config.endoreg-db-api.target-db-host;
-              DJANGO_DB_PORT = "${toString config.endoreg-db-api.target-db-port}";
-              DJANGO_DB_NAME = config.endoreg-db-api.target-db;
-              DJANGO_DB_USER = config.endoreg-db-api.target-db-user;
-              DJANGO_DB_PASS = "${pkgs.readFile config.endoreg-db-api.target-db-passfile}";
+
+          installPhase = ''
+            env DJANGO_STATIC_ROOT="$out" python manage.py collectstatic
+          '';
+        }
+      );
+
+    in
+    {
+      checks = forAllSystems (
+        system:
+        let
+          pythonSet = pythonSets.${system};
+        in
+        # Inherit tests from passthru.tests into flake checks
+        pythonSet.django-webapp.passthru.tests
+      );
+
+      nixosModules = {
+        django-webapp =
+          {
+            config,
+            lib,
+            pkgs,
+            ...
+          }:
+
+          let
+            cfg = config.services.django-webapp;
+            inherit (pkgs) system;
+
+            pythonSet = pythonSets.${system};
+
+            inherit (lib.options) mkOption;
+            inherit (lib.modules) mkIf;
+          in
+          {
+            options.services.django-webapp = {
+              enable = mkOption {
+                type = lib.types.bool;
+                default = false;
+                description = ''
+                  Enable django-webapp
+                '';
+              };
+
+              settings-module = mkOption {
+                type = lib.types.string;
+                default = settingsModules.prod;
+                description = ''
+                  Django settings module
+                '';
+              };
+
+              venv = mkOption {
+                type = lib.types.package;
+                default = pythonSet.mkVirtualEnv "django-webapp-env" workspace.deps.default;
+                description = ''
+                  Django-webapp virtual environment package
+                '';
+              };
+
+              static-root = mkOption {
+                type = lib.types.package;
+                default = staticRoots.${system};
+                description = ''
+                  Django-webapp static root
+                '';
+              };
             };
-            Restart = "always";
-          }; 
 
+            config = mkIf cfg.enable {
+              systemd.services.django-webapp = {
+                description = "Django Webapp server";
 
-        };
+                environment.DJANGO_STATIC_ROOT = cfg.static-root;
 
-        };
+                serviceConfig = {
+                  ExecStart = ''
+                    ${cfg.venv}/bin/daphne django_webapp.asgi:application
+                  '';
+                  Restart = "on-failure";
+
+                  DynamicUser = true;
+                  StateDirectory = "django-webapp";
+                  RuntimeDirectory = "django-webapp";
+
+                  BindReadOnlyPaths = [
+                    "${
+                      config.environment.etc."ssl/certs/ca-certificates.crt".source
+                    }:/etc/ssl/certs/ca-certificates.crt"
+                    builtins.storeDir
+                    "-/etc/resolv.conf"
+                    "-/etc/nsswitch.conf"
+                    "-/etc/hosts"
+                    "-/etc/localtime"
+                  ];
+                };
+
+                wantedBy = [ "multi-user.target" ];
+              };
+            };
+
+          };
+
       };
 
+      packages = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          pythonSet = pythonSets.${system};
+        in
+        lib.optionalAttrs pkgs.stdenv.isLinux {
+          # Expose Docker container in packages
+          docker =
+            let
+              venv = pythonSet.mkVirtualEnv "django-webapp-env" workspace.deps.default;
+            in
+            pkgs.dockerTools.buildLayeredImage {
+              name = "django-webapp";
+              contents = [ pkgs.cacert ];
+              config = {
+                Cmd = [
+                  "${venv}/bin/daphne"
+                  asgiApp
+                ];
+                Env = [
+                  "DJANGO_SETTINGS_MODULE=${settingsModules.prod}"
+                  "DJANGO_STATIC_ROOT=${staticRoots.${system}}"
+                ];
+              };
+            };
+        }
+      );
+
+      # Use an editable Python set for development.
+      devShells = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          editablePythonSet = pythonSets.${system}.overrideScope editableOverlay;
+          venv = editablePythonSet.mkVirtualEnv "django-webapp-dev-env" {
+            django-webapp = [ "dev" ];
+          };
+        in
+        {
+          default = pkgs.mkShell {
+            packages = [
+              venv
+              pkgs.uv
+            ];
+            # env.REPO_ROOT = "/home/adisbladis/sauce/github.com/adisbladis/uv2nix/templates/django-webapp";
+            # env.REPO_ROOT = "${workspace.root}";
+            env.REPO_ROOT = "/home/setup-user/dev/endoreg-db-api";
+
+            shellHook = ''
+              unset PYTHONPATH
+              # export REPO_ROOT=$(git rev-parse --show-toplevel)
+              export UV_NO_SYNC=1
+            '';
+          };
+          impure = pkgs.mkShell {
+            packages = [
+              pkgs.python312
+              pkgs.uv
+            ];
+            shellHook = ''
+              unset PYTHONPATH
+            '';
+          };
+        }
+      );
+
     };
-
-  };
-
-
 }
