@@ -9,6 +9,12 @@ let
 
 in 
 {
+
+  # A dotenv file was found, while dotenv integration is currently not enabled.
+  dotenv.enable = false;
+  dotenv.disableHint = true;
+
+
   packages = with pkgs; [
     python311Packages.psycopg
   ];
@@ -48,7 +54,8 @@ in
   };
 
   processes = {
-    django.exec = "run-prod-server";
+    # django.exec = "run-prod-server";
+    django.exec = "${pkgs.uv}/bin/uv run python manage.py runserver 127.0.0.1:8123";
   };
 
   enterShell = ''
