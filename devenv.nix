@@ -24,7 +24,7 @@ in
       with pkgs;
       lib.makeLibraryPath buildInputs
     }:/run/opengl-driver/lib:/run/opengl-driver-32/lib";
-    # CONF_DIR = "/var/endoreg-db-api/data";
+    CONF_DIR = "/var/endoreg-db-api/data";
 
   };
 
@@ -55,7 +55,7 @@ in
   };
 
   processes = {
-    django.exec = "run-prod-server";
+    django.exec = "run-dev-server";
     silly-example.exec = "while true; do echo hello && sleep 10; done";
     # django.exec = "${pkgs.uv}/bin/uv run python manage.py runserver 127.0.0.1:8123";
   };
