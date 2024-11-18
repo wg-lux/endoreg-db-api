@@ -55,6 +55,7 @@ in
 
   processes = {
     # django.exec = "run-prod-server";
+    silly-example.exec = "while true; do echo hello && sleep 10; done";
     django.exec = "${pkgs.uv}/bin/uv run python manage.py runserver 127.0.0.1:8123";
   };
 
