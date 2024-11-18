@@ -50,13 +50,13 @@ in
     
     "dev:runserver".exec = "${pkgs.uv}/bin/uv run python manage.py runserver";
 
-    # "prod:runserver".exec = "${pkgs.uv}/bin/uv daphne devenv_deployment.asgi:application";
+    "prod:runserver".exec = "${pkgs.uv}/bin/uv run daphne ${DJANGO_MODULE}.asgi:application";
   };
 
   processes = {
     # django.exec = "run-prod-server";
     silly-example.exec = "while true; do echo hello && sleep 10; done";
-    django.exec = "${pkgs.uv}/bin/uv run python manage.py runserver 127.0.0.1:8123";
+    # django.exec = "${pkgs.uv}/bin/uv run python manage.py runserver 127.0.0.1:8123";
   };
 
   enterShell = ''
