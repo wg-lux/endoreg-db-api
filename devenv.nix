@@ -11,7 +11,7 @@ in
 {
 
   # A dotenv file was found, while dotenv integration is currently not enabled.
-  dotenv.enable = false;
+  # dotenv.enable = false;
   dotenv.disableHint = true;
 
 
@@ -24,7 +24,8 @@ in
       with pkgs;
       lib.makeLibraryPath buildInputs
     }:/run/opengl-driver/lib:/run/opengl-driver-32/lib";
-    CONF_DIR = "/var/endoreg-db-api/data";
+    # CONF_DIR = "/var/endoreg-db-api/data";
+
   };
 
   languages.python = {
@@ -54,7 +55,7 @@ in
   };
 
   processes = {
-    # django.exec = "run-prod-server";
+    django.exec = "run-prod-server";
     silly-example.exec = "while true; do echo hello && sleep 10; done";
     # django.exec = "${pkgs.uv}/bin/uv run python manage.py runserver 127.0.0.1:8123";
   };
