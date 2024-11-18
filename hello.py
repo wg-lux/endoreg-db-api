@@ -6,6 +6,7 @@ def write_message(message=None):
 
     # Create a directory if it does not exist
     os.makedirs("data", exist_ok=True)
+    os.makedirs("logs", exist_ok=True)
 
     if not message:
         message = "SUCCESS"
