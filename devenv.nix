@@ -25,6 +25,8 @@ in
       lib.makeLibraryPath buildInputs
     }:/run/opengl-driver/lib:/run/opengl-driver-32/lib";
     CONF_DIR = "/var/endoreg-db-api/data";
+    DJANGO_DEBUG = "True";
+    DJANGO_SETTINGS_MODULE = "${DJANGO_MODULE}.settings_dev";
 
   };
 
@@ -38,7 +40,7 @@ in
 
   scripts.hello.exec = "${pkgs.uv}/bin/uv run python hello.py";
   scripts.run-dev-server.exec =
-    "${pkgs.uv}/bin/uv run python manage.py runserver";
+    "${pkgs.uv}/bin/uv run python manage.py runserver localhost:8182";
 
   scripts.run-prod-server.exec =
     "${pkgs.uv}/bin/uv run daphne ${DJANGO_MODULE}.asgi:application";
@@ -50,8 +52,7 @@ in
     "deploy:load-base-db-data".exec = "${pkgs.uv}/bin/uv run python manage.py load_base_db_data";
     
     "dev:runserver".exec = "${pkgs.uv}/bin/uv run python manage.py runserver";
-
-    "prod:runserver".exec = "${pkgs.uv}/bin/uv run daphne ${DJANGO_MODULE}.asgi:application";
+    "prod:runserver".exec = "${pkgs.uv}/bin/uv run daphne ${DJANGO_MODULE}.asgi:application -b 172.16.255.142 -p 8123";
   };
 
   processes = {

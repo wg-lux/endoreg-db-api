@@ -21,30 +21,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ehohvfo*#^_blfeo_n$p31v2+&ylp$(1$96d%5!0y(-^l28x-6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "True") == "True"
 CONF_DIR = os.environ.get("CONF_DIR", "./data")
-DB_PWD_FILE = os.environ.get("DB_PWD_FILE", f"{CONF_DIR}/db-pwd")
-DB_USER_FILE = os.environ.get("DB_USER_FILE", f"{CONF_DIR}/db-user")
-DB_HOST_FILE = os.environ.get("DB_HOST_FILE", f"{CONF_DIR}/db-host")
-DB_PORT_FILE = os.environ.get("DB_PORT_FILE", f"{CONF_DIR}/db-port")
-DB_NAME_FILE = os.environ.get("DB_NAME_FILE", f"{CONF_DIR}/db-name")
 
-with open(DB_PWD_FILE, "r") as file:
-    DB_PWD = file.read().strip()
 
-with open(DB_USER_FILE, "r") as file:
-    DB_USER = file.read().strip()
 
-with open(DB_HOST_FILE, "r") as file:
-    DB_HOST = file.read().strip()
-
-with open(DB_PORT_FILE, "r") as file:
-    DB_PORT = file.read().strip()
-
-ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -93,20 +76,7 @@ WSGI_APPLICATION = 'endoreg_db_api.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-    # "default": {
-    #     'ENGINE': 'django.db.backends.postgresql',
-    #     'NAME': 'aglnet_base',
-    #     'USER': DB_USER,
-    #     'PASSWORD': DB_PWD,  # Use the loaded password
-    #     'HOST': '172.16.255.1',  # Set to 'localhost' if the server is local
-    #     'PORT': '5432',       # Default PostgreSQL port
-    # }
-}
+
 
 
 # Password validation
@@ -131,7 +101,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'de-de'
 
 TIME_ZONE = 'UTC'
 
