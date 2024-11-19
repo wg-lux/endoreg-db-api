@@ -1,7 +1,7 @@
 { pkgs, lib, config, inputs, ... }:
 let
   buildInputs = with pkgs; [
-    python312Full
+    python311Full
     stdenv.cc.cc
   ];
 
@@ -50,7 +50,8 @@ in
     "deploy:make-migrations".exec = "${pkgs.uv}/bin/uv run python manage.py makemigrations";
     "deploy:migrate".exec = "${pkgs.uv}/bin/uv run python manage.py migrate";
     "deploy:load-base-db-data".exec = "${pkgs.uv}/bin/uv run python manage.py load_base_db_data";
-    
+    "deploy:collectstatic".exec = "${pkgs.uv}/bin/uv run python manage.py collectstatic --noinput";
+
     "dev:runserver".exec = "${pkgs.uv}/bin/uv run python manage.py runserver";
     "prod:runserver".exec = "${pkgs.uv}/bin/uv run daphne ${DJANGO_MODULE}.asgi:application -b 172.16.255.142 -p 8123";
   };

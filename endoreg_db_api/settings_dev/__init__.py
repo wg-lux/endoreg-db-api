@@ -11,7 +11,9 @@ from endoreg_db_api.settings_base import (BASE_DIR,
     USE_I18N,
     USE_TZ,
     STATIC_URL,
+    STATIC_ROOT,
     DEFAULT_AUTO_FIELD,
+    STATICFILES_DIRS
 )
 
 SECRET_KEY = 'django-insecure-ehohvfo*#^_blfeo_n$p31v2+&ylp$(1$96d%5!0y(-^l28x-6'

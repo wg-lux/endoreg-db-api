@@ -14,6 +14,8 @@ from endoreg_db_api.settings_base import (
     USE_TZ,
     STATIC_URL,
     DEFAULT_AUTO_FIELD,
+    STATIC_ROOT,
+    STATICFILES_DIRS
 )
 
 DB_PWD_FILE = os.environ.get("DB_PWD_FILE", f"{CONF_DIR}/db-pwd")
