@@ -10,3 +10,6 @@ dependencies = [
     "endoreg-db>=0.5.3",
     "psycopg==3.1.17", # Should be same version as version provided in devenv.nix
 ]
+
+[tool.setuptools]
+packages = ["endoreg_db_api"]
