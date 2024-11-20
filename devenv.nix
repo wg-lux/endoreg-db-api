@@ -46,6 +46,16 @@ in
   scripts.run-prod-server.exec =
     "${pkgs.uv}/bin/uv run daphne ${DJANGO_MODULE}.asgi:application";
 
+  scripts.env-setup.exec = ''
+    export CONF_DIR="/var/endoreg-db-api/data"
+    export DJANGO_SETTINGS_MODULE="${DJANGO_MODULE}.settings_dev"
+    export DJANGO_DEBUG="True"
+    export LD_LIBRARY_PATH="${
+      with pkgs;
+      lib.makeLibraryPath buildInputs
+    }:/run/opengl-driver/lib:/run/opengl-driver-32/lib"
+  '';
+
 
   tasks = {
     "deploy:make-migrations".exec = "${pkgs.uv}/bin/uv run python manage.py makemigrations";
