@@ -11,12 +11,13 @@ in
 {
 
   # A dotenv file was found, while dotenv integration is currently not enabled.
-  # dotenv.enable = false;
+  dotenv.enable = true;
   dotenv.disableHint = true;
 
 
   packages = with pkgs; [
-    python311Packages.psycopg
+    cudaPackages.cuda_nvcc
+    stdenv.cc.cc
   ];
 
   env = {
