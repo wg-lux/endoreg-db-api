@@ -2,6 +2,8 @@
 let
   buildInputs = with pkgs; [
     python311Full
+    # cudaPackages.cuda_cudart
+    # cudaPackages.cudnn
     stdenv.cc.cc
   ];
 
