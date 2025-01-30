@@ -58,6 +58,29 @@ in
     }:/run/opengl-driver/lib:/run/opengl-driver-32/lib"
   '';
 
+  scripts.init-environment.exec = ''
+    uv pip install -e .
+    if [ -d "endoreg-db-production/.git" ]; then
+      cd endoreg-db-production && git pull && cd ..
+    else
+      git clone https://github.com/wg-lux/endoreg-db ./endoreg-db-production
+    fi
+    
+    uv pip install -e endoreg-db-production/. 
+    devenv tasks run deploy:make-migrations
+    devenv tasks run deploy:migrate
+  '';
+
+  scripts.init-data.exec = ''
+    devenv tasks run deploy:load-base-db-data
+  '';
+
+  scripts.test-local-endoreg-db.exec = ''
+    cd endoreg-db-production
+    devenv shell -i runtests
+    cd ..
+  '';
+
 
   tasks = {
     "deploy:make-migrations".exec = "${pkgs.uv}/bin/uv run python manage.py makemigrations";
@@ -77,6 +100,7 @@ in
 
   enterShell = ''
     . .devenv/state/venv/bin/activate
+    init-environment
     hello
   '';
 }
