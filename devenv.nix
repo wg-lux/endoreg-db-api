@@ -69,7 +69,6 @@ in
     uv pip install -e endoreg-db-production/. 
     devenv tasks run deploy:make-migrations
     devenv tasks run deploy:migrate
-    check-psql
   '';
 
   scripts.check-psql.exec = ''
@@ -95,6 +94,7 @@ in
 
   scripts.install.exec = ''
     init-lxdb-config
+    check-psql
     init-data
   '';
 
