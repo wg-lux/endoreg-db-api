@@ -92,7 +92,7 @@ in
     cd ..
   '';
 
-  scripts.install.exec = ''
+  scripts.install-api.exec = ''
     init-lxdb-config
     check-psql
     init-data
