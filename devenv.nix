@@ -27,7 +27,7 @@ in
       with pkgs;
       lib.makeLibraryPath buildInputs
     }:/run/opengl-driver/lib:/run/opengl-driver-32/lib";
-    CONF_DIR = "/var/endoreg-db-api/data";
+    CONF_DIR = "./conf";
     DJANGO_DEBUG = "True";
     DJANGO_SETTINGS_MODULE = "${DJANGO_MODULE}.settings_dev";
 
@@ -69,9 +69,21 @@ in
     uv pip install -e endoreg-db-production/. 
     devenv tasks run deploy:make-migrations
     devenv tasks run deploy:migrate
+    check-psql
+  '';
+
+  scripts.check-psql.exec = ''
+    devenv tasks run deploy:ensure-psql-user
+  '';
+
+  scripts.init-lxdb-config.exec = ''
+    devenv tasks run deploy:init-conf
   '';
 
   scripts.init-data.exec = ''
+    export DJANGO_SETTINGS_MODULE="${DJANGO_MODULE}.settings_prod"
+    devenv tasks run deploy:make-migrations
+    devenv tasks run deploy:migrate
     devenv tasks run deploy:load-base-db-data
   '';
 
@@ -81,8 +93,15 @@ in
     cd ..
   '';
 
+  scripts.install.exec = ''
+    init-lxdb-config
+    init-data
+  '';
+
 
   tasks = {
+    "deploy:init-conf".exec = "${pkgs.uv}/bin/uv run python scripts/make_conf.py";
+    "deploy:ensure-psql-user".exec = "${pkgs.uv}/bin/uv run python scripts/ensure_psql_user.py";
     "deploy:make-migrations".exec = "${pkgs.uv}/bin/uv run python manage.py makemigrations";
     "deploy:migrate".exec = "${pkgs.uv}/bin/uv run python manage.py migrate";
     "deploy:load-base-db-data".exec = "${pkgs.uv}/bin/uv run python manage.py load_base_db_data";
@@ -101,6 +120,7 @@ in
   enterShell = ''
     . .devenv/state/venv/bin/activate
     init-environment
+
     hello
   '';
 }

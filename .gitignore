@@ -1,6 +1,10 @@
 data/*
 logs/*
 staticfiles/*
+conf/
+static/ 
+
+.vscode/
 
 endoreg-db-production/
 
@@ -216,7 +220,6 @@ pyrightconfig.json
 *.egg-info
 
 # Personal dev stuff
-scripts/
 _tests/
 .aider*
 
