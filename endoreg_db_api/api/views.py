@@ -1,7 +1,7 @@
 from rest_framework import viewsets
-from ..endoreg_db-production-endoreg-db.models import Intervention
+from endoreg_db_production.endoreg_db.models import Intervention
 
-from ..endoreg_db-production-endoreg-db.serializers import InterventionSerializer
+from endoreg_db_production.endoreg_db.serializers import InterventionSerializer
 
 class InterventionViewSet(viewsets.ModelViewSet):
     queryset = Intervention.objects.all()
