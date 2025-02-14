@@ -58,6 +58,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "endoreg_db.apps.EndoregDbConfig",
+    "rest_framework",
+    
 ]
 
 MIDDLEWARE = [
@@ -76,7 +78,8 @@ ROOT_URLCONF = "endoreg_db_api.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        #'DIRS': [os.path.abspath(os.path.join(BASE_DIR, '../endoreg-db-production/endoreg_db/views'))],   # path added for templates -gc-08
+        'DIRS': [os.path.abspath(os.path.join(BASE_DIR, '../endoreg-db-production/endoreg_db/templates'))],  
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
