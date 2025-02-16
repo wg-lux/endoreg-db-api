@@ -17,7 +17,7 @@ from endoreg_db_api.settings_base import (BASE_DIR,
 )
 
 SECRET_KEY = 'django-insecure-ehohvfo*#^_blfeo_n$p31v2+&ylp$(1$96d%5!0y(-^l28x-6'
-
+DEBUG = True
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',

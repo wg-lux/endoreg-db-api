@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../../dev/lx-annotate"
+		},
+		{
+			"path": "../../dev/endoreg-db-api"
+		},
+		{
+			"path": ".."
+		}
+	],
+	"settings": {}
+}
