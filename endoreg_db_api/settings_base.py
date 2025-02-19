@@ -75,10 +75,12 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+#print("MIDDLEWARE:", MIDDLEWARE)
+
 ROOT_URLCONF = "endoreg_db_api.urls"
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5174",
-    "http://127.0.0.1:5174/api/patients"
+    #"http://127.0.0.1:5174/api/patients"
 ]
 CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
