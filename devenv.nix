@@ -60,13 +60,7 @@ in
 
   scripts.init-environment.exec = ''
     uv pip install -e .
-    if [ -d "endoreg-db-production/.git" ]; then
-      cd endoreg-db-production && git pull && cd ..
-    else
-      git clone https://github.com/wg-lux/endoreg-db ./endoreg-db-production
-    fi
-    
-    uv pip install -e endoreg-db-production/. 
+
     devenv tasks run deploy:make-migrations
     devenv tasks run deploy:migrate
   '';
@@ -86,11 +80,7 @@ in
     devenv tasks run deploy:load-base-db-data
   '';
 
-  scripts.test-local-endoreg-db.exec = ''
-    cd endoreg-db-production
-    devenv shell -i runtests
-    cd ..
-  '';
+
 
   scripts.install-api.exec = ''
     init-lxdb-config
