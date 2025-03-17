@@ -438,8 +438,8 @@ wheels = [
 
 [[package]]
 name = "endoreg-db-api"
-version = "0.1.1"
-source = { virtual = "." }
+version = "0.1.2"
+source = { editable = "." }
 dependencies = [
     { name = "asgiref" },
     { name = "channels" },
@@ -466,7 +466,7 @@ requires-dist = [
     { name = "django-cors-headers", specifier = ">=4.7.0" },
     { name = "django-extensions", specifier = ">=3.2.3" },
     { name = "djangorestframework", specifier = ">=3.15.2" },
-    { name = "endoreg-db", specifier = ">=0.6.1" },
+    { name = "endoreg-db", specifier = ">=0.6" },
     { name = "icecream", specifier = ">=2.1.4" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2.3" },
     { name = "pydantic", specifier = ">=2.10.6" },

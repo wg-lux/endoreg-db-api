@@ -90,15 +90,33 @@ in
 
 
   tasks = {
+    "deploy:psql-pwd-file-exists".exec = "test -f /var/endoreg-db-api/data/psql_pwd";
+    "deploy:init-conf".after = ["deploy:psql-pwd-file-exists"];
     "deploy:init-conf".exec = "${pkgs.uv}/bin/uv run python scripts/make_conf.py";
+    "deploy:ensure-psql-user".after = ["devenv:enterShell" "deploy:init-conf"];
     "deploy:ensure-psql-user".exec = "${pkgs.uv}/bin/uv run python scripts/ensure_psql_user.py";
-    "deploy:make-migrations".exec = "${pkgs.uv}/bin/uv run python manage.py makemigrations";
+    "deploy:migrate".after = ["deploy:ensure-psql-user"];
     "deploy:migrate".exec = "${pkgs.uv}/bin/uv run python manage.py migrate";
     "deploy:load-base-db-data".exec = "${pkgs.uv}/bin/uv run python manage.py load_base_db_data";
     "deploy:collectstatic".exec = "${pkgs.uv}/bin/uv run python manage.py collectstatic --noinput";
+
+
+    "deploy:pipe".after = ["deploy:collectstatic" "deploy:load-base-db-data" "deploy:migrate"];
+    "deploy:pipe".exec = "echo Deployment-Pipeline Completed";
     "test:gpu".exec = "${pkgs.uv}/bin/uv run python gpu-check.py";
     "dev:runserver".exec = "${pkgs.uv}/bin/uv run python manage.py runserver";
     "prod:runserver".exec = "${pkgs.uv}/bin/uv run daphne ${DJANGO_MODULE}.asgi:application -b 172.16.255.142 -p 8123";
+    "env:build" = {
+      description = "Build the .env file";
+      after = ["devenv:enterShell"];
+      exec = "uv run env_setup.py";
+      status = "test -f .env && grep -q 'DJANGO_SECRET_KEY=' .env";
+    };
+    "env:export" = {
+      description = "Export the .env file";
+      after = ["env:build"];
+      exec = "export $(cat .env | xargs)";
+    };
   };
 
   processes = {
@@ -114,3 +132,4 @@ in
     hello
   '';
 }
+
