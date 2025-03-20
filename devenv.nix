@@ -7,6 +7,8 @@ let
     stdenv.cc.cc
   ];
 
+  host = "localhost";
+  port = "8182";
   DJANGO_MODULE = "endoreg_db_api";
 
 in 
@@ -28,9 +30,6 @@ in
       lib.makeLibraryPath buildInputs
     }:/run/opengl-driver/lib:/run/opengl-driver-32/lib";
     CONF_DIR = "./conf";
-    DJANGO_DEBUG = "True";
-    DJANGO_SETTINGS_MODULE = "${DJANGO_MODULE}.settings_dev";
-
   };
 
   languages.python = {
@@ -41,40 +40,24 @@ in
     };
   };
 
+  scripts.set-prod-settings.exec = "${pkgs.uv}/bin/uv run python scripts/set_production_settings.py";
+  scripts.set-dev-settings.exec = "${pkgs.uv}/bin/uv run python scripts/set_development_settings.py";
+
   scripts.hello.exec = "${pkgs.uv}/bin/uv run python hello.py";
-  scripts.run-dev-server.exec =
-    "${pkgs.uv}/bin/uv run python manage.py runserver localhost:8182";
-
-  scripts.run-prod-server.exec =
-    "${pkgs.uv}/bin/uv run daphne ${DJANGO_MODULE}.asgi:application";
-
-  scripts.env-setup.exec = ''
-    export CONF_DIR="/var/endoreg-db-api/data"
-    export DJANGO_SETTINGS_MODULE="${DJANGO_MODULE}.settings_dev"
-    export DJANGO_DEBUG="True"
-    export LD_LIBRARY_PATH="${
-      with pkgs;
-      lib.makeLibraryPath buildInputs
-    }:/run/opengl-driver/lib:/run/opengl-driver-32/lib"
+  scripts.run-dev-server.exec = ''
+    set-dev-settings
+    echo "Running dev server"
+    echo "Host: ${host}"
+    echo "Port: ${port}"
+    ${pkgs.uv}/bin/uv run python manage.py runserver ${host}:${port}
   '';
 
-  scripts.init-environment.exec = ''
-    uv pip install -e .
-
-    devenv tasks run deploy:make-migrations
-    devenv tasks run deploy:migrate
-  '';
-
-  scripts.check-psql.exec = ''
-    devenv tasks run deploy:ensure-psql-user
-  '';
-
-  scripts.init-lxdb-config.exec = ''
-    devenv tasks run deploy:init-conf
+  scripts.run-prod-server.exec = ''
+    set-prod-settings
+    ${pkgs.uv}/bin/uv run daphne ${DJANGO_MODULE}.asgi:application
   '';
 
   scripts.init-data.exec = ''
-    export DJANGO_SETTINGS_MODULE="${DJANGO_MODULE}.settings_prod"
     devenv tasks run deploy:make-migrations
     devenv tasks run deploy:migrate
     devenv tasks run deploy:load-base-db-data
@@ -83,34 +66,49 @@ in
 
 
   scripts.install-api.exec = ''
-    init-lxdb-config
-    check-psql
-    init-data
+    devenv tasks run deploy:ensure-psql-user
+    devenv tasks run deploy:pipe
   '';
 
 
   tasks = {
-    "deploy:psql-pwd-file-exists".exec = "test -f /var/endoreg-db-api/data/psql_pwd";
-    "deploy:init-conf".after = ["deploy:psql-pwd-file-exists"];
-    "deploy:init-conf".exec = "${pkgs.uv}/bin/uv run python scripts/make_conf.py";
-    "deploy:ensure-psql-user".after = ["devenv:enterShell" "deploy:init-conf"];
-    "deploy:ensure-psql-user".exec = "${pkgs.uv}/bin/uv run python scripts/ensure_psql_user.py";
-    "deploy:migrate".after = ["deploy:ensure-psql-user"];
-    "deploy:migrate".exec = "${pkgs.uv}/bin/uv run python manage.py migrate";
-    "deploy:load-base-db-data".exec = "${pkgs.uv}/bin/uv run python manage.py load_base_db_data";
+    
+    "deploy:ensure-psql-user" =  {
+      exec = "${pkgs.uv}/bin/uv run python scripts/ensure_psql_user.py";
+    };
+
+    "deploy:migrate" = { 
+      exec = "${pkgs.uv}/bin/uv run python manage.py migrate";
+    };
+    "deploy:load-base-db-data" = {
+      after = ["deploy:migrate"];
+      exec = "${pkgs.uv}/bin/uv run python manage.py load_base_db_data";
+    };
     "deploy:collectstatic".exec = "${pkgs.uv}/bin/uv run python manage.py collectstatic --noinput";
 
 
-    "deploy:pipe".after = ["deploy:collectstatic" "deploy:load-base-db-data" "deploy:migrate"];
-    "deploy:pipe".exec = "echo Deployment-Pipeline Completed";
+    "deploy:pipe" = {
+      after = ["deploy:collectstatic" "deploy:load-base-db-data"];
+      exec = "echo Deployment-Pipeline Completed";
+    };
+
     "test:gpu".exec = "${pkgs.uv}/bin/uv run python gpu-check.py";
     "dev:runserver".exec = "${pkgs.uv}/bin/uv run python manage.py runserver";
     "prod:runserver".exec = "${pkgs.uv}/bin/uv run daphne ${DJANGO_MODULE}.asgi:application -b 172.16.255.142 -p 8123";
+    
+    "env:psql-pwd-file-exists" ={
+      exec = "${pkgs.uv}/bin/uv run python scripts/ensure_psql_pwd_file_exists.py";
+    };
+
+    "env:init-conf" = {
+      after = ["env:psql-pwd-file-exists" "devenv:enterShell"];
+      exec = "${pkgs.uv}/bin/uv run python scripts/make_conf.py";
+    };
     "env:build" = {
       description = "Build the .env file";
-      after = ["devenv:enterShell"];
+      after = ["devenv:enterShell" "env:init-conf"];
       exec = "uv run env_setup.py";
-      status = "test -f .env && grep -q 'DJANGO_SECRET_KEY=' .env";
+      # status = "test -f .env";
     };
     "env:export" = {
       description = "Export the .env file";
@@ -127,7 +125,6 @@ in
 
   enterShell = ''
     . .devenv/state/venv/bin/activate
-    init-environment
 
     hello
   '';

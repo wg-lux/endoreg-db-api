@@ -32,12 +32,13 @@ dependencies = [
     "django-cors-headers>=4.7.0",
     "django-extensions>=3.2.3",
     "djangorestframework>=3.15.2",
+    "dotenv>=0.9.9",
     "endoreg-db>=0.6",
     "icecream>=2.1.4",
     "psycopg[binary]>=3.2.3",
     "pydantic>=2.10.6",
     "pyyaml>=6.0.2",
-    "torch>=2.5.1",                # Should be same version as version provided in devenv.nix
+    "torch>=2.5.1", # Should be same version as version provided in devenv.nix
     "whitenoise>=6.8.2",
 ]
 
