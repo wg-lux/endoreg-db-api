@@ -54,7 +54,7 @@ in
 
   scripts.run-prod-server.exec = ''
     set-prod-settings
-    ${pkgs.uv}/bin/uv run daphne ${DJANGO_MODULE}.asgi:application
+    ${pkgs.uv}/bin/uv run daphne ${DJANGO_MODULE}.asgi:application -p ${port}
   '';
 
   scripts.init-data.exec = ''
@@ -66,8 +66,10 @@ in
 
 
   scripts.install-api.exec = ''
+    set-prod-settings
     devenv tasks run deploy:ensure-psql-user
     devenv tasks run deploy:pipe
+    set-dev-settings
   '';
 
 
@@ -118,7 +120,7 @@ in
   };
 
   processes = {
-    django.exec = "run-dev-server";
+    django.exec = "run-prod-server";
     silly-example.exec = "while true; do echo hello && sleep 10; done";
     # django.exec = "${pkgs.uv}/bin/uv run python manage.py runserver 127.0.0.1:8123";
   };
