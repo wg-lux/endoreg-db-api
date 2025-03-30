@@ -21,8 +21,8 @@ from endoreg_db_api.settings_base import (
 
 DB_CFG_FILE = CONF_DIR / "db.yaml"
 
-SECRET_KEY = "django-insecure-ehohvfo*#^_blfeo_n$p31v2+&ylp$(1$96d%5!0y(-^l28x-6"
-ALLOWED_HOSTS = ["*"]
+# ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 
 db_config: DbConfig = DbConfig.from_file(DB_CFG_FILE)
