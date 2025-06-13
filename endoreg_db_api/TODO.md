@@ -1,0 +1,1 @@
+[ ] Enable View authentificaton for secure API requests

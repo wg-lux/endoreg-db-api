@@ -1,4 +1,5 @@
-from endoreg_db_api.settings_base import (BASE_DIR,
+from endoreg_db_api.settings_base import (
+    BASE_DIR,
     CONF_DIR,
     DEBUG,
     INSTALLED_APPS,
@@ -13,16 +14,16 @@ from endoreg_db_api.settings_base import (BASE_DIR,
     STATIC_URL,
     STATIC_ROOT,
     DEFAULT_AUTO_FIELD,
-    STATICFILES_DIRS
+    STATICFILES_DIRS,
 )
 
-SECRET_KEY = 'django-insecure-ehohvfo*#^_blfeo_n$p31v2+&ylp$(1$96d%5!0y(-^l28x-6'
-
+DEBUG = True
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 
-ALLOWED_HOSTS = ["*"]
+# ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]

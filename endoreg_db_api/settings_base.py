@@ -15,6 +15,11 @@ import os
 import sys
 import yaml
 
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-ehohvfo*#^_blfeo_n$p31v2+&ylp$(1$96d%5!0y(-^l28x-6",
+)
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR / "endoreg-db-production"))
@@ -59,10 +64,14 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "endoreg_db.apps.EndoregDbConfig",
     "rest_framework",
-    
+
+    "django_extensions",
+    "corsheaders",
 ]
 
+
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",  # Must be at the top
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -73,7 +82,19 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+#print("MIDDLEWARE:", MIDDLEWARE)
+
 ROOT_URLCONF = "endoreg_db_api.urls"
+CORS_ALLOWED_ORIGINS = ["http://127.0.0.1:5174", "http://127.0.0.1:5174/api/patients"]
+
+CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:5174",
+    "http://127.0.0.1:5174/api/patients",
+]
+
+CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+CORS_ALLOW_HEADERS = ["Content-Type", "Authorization", "X-CSRFToken"]
 
 TEMPLATES = [
     {
