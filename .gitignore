@@ -5,8 +5,6 @@ conf/
 static/ 
 
 .vscode/
-uv.lock
-devenv.lock
 
 endoreg-db-production/
 

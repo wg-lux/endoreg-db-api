@@ -1,10 +1,16 @@
 # Info
 
-- pulls latest endoreg-db to ./endoreg-db-production
+## Run in Production
 
-  - run tests endoreg-db by running "test-local-endoreg-db" in this repo
-    - changes directory to ./endoreg-db-production
-    - activates the devenv of this directory and calls the "runtests" script (defined in endoreg-db's devenv.nix)
+### Requirements
 
-- setup configuration by running "init-lxdb-config"
-  - runs scripts/make_conf.py
+- running psql instance using default port
+- sudo privileges
+
+### Setup
+
+- make sure that we use the production settins in our .env file: `DJANGO_SETTINGS_MODULE=endo_ai.settings_prod`
+- run `install-api`
+  - requires to manually enter admin pwd!
+- connect to local postgres db using credentials at: ./conf/db.yaml
+- make sure file permissions for this file are hardened as it currently stores the raw db
