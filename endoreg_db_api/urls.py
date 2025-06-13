@@ -17,6 +17,7 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+
 from . import views
 
 urlpatterns = [
@@ -24,3 +25,4 @@ urlpatterns = [
     path("endoreg_db/", include("endoreg_db.urls")),
     path("", views.home, name="home"),
 ]
+

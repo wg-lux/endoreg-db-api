@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 import sys
+import yaml
 
 SECRET_KEY = os.environ.get(
     "DJANGO_SECRET_KEY",
@@ -63,6 +64,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "endoreg_db.apps.EndoregDbConfig",
     "rest_framework",
+
     "django_extensions",
     "corsheaders",
 ]
@@ -97,7 +99,8 @@ CORS_ALLOW_HEADERS = ["Content-Type", "Authorization", "X-CSRFToken"]
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        #'DIRS': [os.path.abspath(os.path.join(BASE_DIR, '../endoreg-db-production/endoreg_db/views'))],   # path added for templates -gc-08
+        'DIRS': [os.path.abspath(os.path.join(BASE_DIR, '../endoreg-db-production/endoreg_db/templates'))],  
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [

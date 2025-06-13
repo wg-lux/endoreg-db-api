@@ -3,6 +3,7 @@
     "devenv": {
       "locked": {
         "dir": "src/modules",
+
         "lastModified": 1739444039,
         "owner": "cachix",
         "repo": "devenv",
@@ -104,6 +105,7 @@
     },
     "nixpkgs": {
       "locked": {
+
         "lastModified": 1739698114,
         "owner": "NixOS",
         "repo": "nixpkgs",
