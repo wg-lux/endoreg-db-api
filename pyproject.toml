@@ -1,9 +1,9 @@
 [project]
 name = "endoreg-db-api"
-version = "0.1.2"
+version = "0.2.0"
 description = "EndoReg Db API Service"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12,<3.13"
 authors = [
     { name = "Thomas J. Lux", email = "lux_t1@ukw.de" },
     { name = "Max Hild" },
@@ -33,8 +33,10 @@ dependencies = [
     "django-extensions>=3.2.3",
     "djangorestframework>=3.15.2",
     "dotenv>=0.9.9",
-    "endoreg-db>=0.6",
+    "endoreg-db",
+    "lx-anonymizer",
     "icecream>=2.1.4",
+    "mypy>=1.17.0",
     "psycopg[binary]>=3.2.3",
     "pydantic>=2.10.6",
     "pyyaml>=6.0.2",
@@ -47,4 +49,12 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.setuptools]
-packages = ["endoreg_db_api"]
+# packages = ["endoreg_db_api"]
+packages = ["endoreg-db"]
+
+[tool.uv.sources]
+endoreg-db = { path = "endoreg-db", editable = false }
+lx-anonymizer = { path = "lx-anonymizer", editable = false }
+
+[tool.uv]
+override-dependencies = ["lx-anonymizer==0.7.0"]
